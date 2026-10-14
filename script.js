@@ -73,9 +73,13 @@ let selectedEvent = null;
 
 let quantity = 1;
 
-let ticketsSold = 0;
 
-let revenue = 0;
+// Load saved values
+let ticketsSold =
+  Number(localStorage.getItem("nbkrist_ticketsSold")) || 0;
+
+let revenue =
+  Number(localStorage.getItem("nbkrist_revenue")) || 0;
 
 
 
@@ -91,6 +95,7 @@ function showEvents() {
 }
 
 
+
 function showDashboard() {
 
   const section =
@@ -101,6 +106,7 @@ function showDashboard() {
   });
 
 }
+
 
 
 function renderEvents() {
@@ -163,18 +169,14 @@ function renderEvents() {
         <div class="event-card">
 
           <div class="event-image">
-
             ${event.title}
-
           </div>
 
 
           <div class="event-body">
 
             <div class="event-meta">
-
               ${event.category.toUpperCase()}
-
             </div>
 
 
@@ -184,24 +186,22 @@ function renderEvents() {
 
 
             <p class="event-description">
-
               ${event.description}
-
             </p>
 
 
             <div class="event-info">
 
               <span>
-                 ${event.date}
+                ${event.date}
               </span>
 
               <span>
-                 ${event.time}
+                ${event.time}
               </span>
 
               <span>
-                 ${event.venue}
+                ${event.venue}
               </span>
 
             </div>
@@ -224,9 +224,7 @@ function renderEvents() {
                 class="book-btn"
                 onclick="openBooking(${event.id})"
               >
-
                 Get Ticket
-
               </button>
 
             </div>
@@ -286,6 +284,8 @@ function closeBooking() {
 
 }
 
+
+
 function changeQuantity(amount) {
 
   quantity += amount;
@@ -310,6 +310,7 @@ function changeQuantity(amount) {
 }
 
 
+
 function updateTotal() {
 
   if (!selectedEvent) {
@@ -330,6 +331,7 @@ function updateTotal() {
 }
 
 
+
 function confirmBooking(event) {
 
   event.preventDefault();
@@ -338,6 +340,19 @@ function confirmBooking(event) {
   if (!selectedEvent) {
     return;
   }
+
+
+  const form =
+    document.getElementById("bookingForm");
+
+
+  // Prevent duplicate submission
+  if (form.dataset.submitting === "true") {
+    return;
+  }
+
+
+  form.dataset.submitting = "true";
 
 
   const name =
@@ -354,9 +369,24 @@ function confirmBooking(event) {
     selectedEvent.price * quantity;
 
 
+  // Add tickets only once
   ticketsSold += quantity;
 
+
   revenue += total;
+
+
+  // Save values permanently in this browser
+  localStorage.setItem(
+    "nbkrist_ticketsSold",
+    ticketsSold
+  );
+
+
+  localStorage.setItem(
+    "nbkrist_revenue",
+    revenue
+  );
 
 
   document.getElementById("ticketsSold")
@@ -380,18 +410,26 @@ function confirmBooking(event) {
 
 
   document.getElementById("ticketDate")
-    .textContent = selectedEvent.date + " · " +selectedEvent.time;
+    .textContent =
+      selectedEvent.date +
+      " · " +
+      selectedEvent.time;
+
 
   document.getElementById("ticketVenue")
-    .textContent =selectedEvent.venue;
+    .textContent =
+      selectedEvent.venue;
 
 
   document.getElementById("ticketQuantity")
-    .textContent =quantity +" ticket(s)";
+    .textContent =
+      quantity + " ticket(s)";
 
 
   document.getElementById("ticketId")
-    .textContent = "NBKRIST-" + Date.now().toString().slice(-8);
+    .textContent =
+      "NBKRIST-" +
+      Date.now().toString().slice(-8);
 
 
   closeBooking();
@@ -401,10 +439,14 @@ function confirmBooking(event) {
     .classList.add("active");
 
 
-  document.getElementById("bookingForm")
-    .reset();
+  form.reset();
+
+
+  // Allow another booking
+  form.dataset.submitting = "false";
 
 }
+
 
 
 function closeTicket() {
@@ -415,28 +457,42 @@ function closeTicket() {
 }
 
 
+
 document.addEventListener(
   "DOMContentLoaded",
-  function() {
-document.addEventListener("DOMContentLoaded", function () {
+  function () {
 
     document.getElementById("eventCount")
       .textContent = events.length;
-  document.getElementById("eventCount").textContent = events.length;
-  document.getElementById("totalEvents").textContent = events.length;
 
-  document.getElementById("bookingForm").addEventListener(
-    "submit",
-    confirmBooking
-  );
 
     document.getElementById("totalEvents")
       .textContent = events.length;
-  renderEvents();
+
+
+    // Display saved ticket count
+    document.getElementById("ticketsSold")
+      .textContent = ticketsSold;
+
+
+    document.getElementById("ticketsStat")
+      .textContent = ticketsSold;
+
+
+    // Display saved revenue
+    document.getElementById("revenue")
+      .textContent = "Rs" + revenue;
 
 
     renderEvents();
 
+
+    // Register submit handler ONLY ONCE
+    document.getElementById("bookingForm")
+      .addEventListener(
+        "submit",
+        confirmBooking
+      );
+
   }
 );
-});
